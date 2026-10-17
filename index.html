@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>המסע של מוצקה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Secular+One&family=Varela+Round&display=swap">
+<style>
+/* Layout: one phone-width game column over a pixel night sky above Givat Yona (coffee cart + string lights on the hill); one screen at a time. Single committed night look. */
+:root{
+  --night:#15122e;
+  --panel:#0f0c24;
+  --panel-2:#1c1740;
+  --cream:#fff3d6;
+  --muted:#bdb4e0;
+  --lantern:#ffc857;
+  --lantern-dk:#c98a1e;
+  --blush:#ff6f9f;
+  --blush-dk:#b8376a;
+  --grass:#4c9a55;
+  --danger:#ff5d5d;
+  --f-display:"Secular One","Varela Round",system-ui,sans-serif;
+  --f-body:"Varela Round",system-ui,sans-serif;
+  --f-pixel:"Press Start 2P",ui-monospace,monospace;
+  --notch:polygon(0 5px,5px 5px,5px 0,calc(100% - 5px) 0,calc(100% - 5px) 5px,100% 5px,100% calc(100% - 5px),calc(100% - 5px) calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,5px calc(100% - 5px),0 calc(100% - 5px));
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--night);color:var(--cream);font-family:var(--f-body);font-size:17px;line-height:1.55;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+#sky{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;z-index:0;pointer-events:none}
+#fx{position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated;z-index:30;pointer-events:none}
+.app{position:relative;z-index:1;max-width:440px;margin:0 auto;padding-inline:16px;padding-block:12px 40px;min-height:100%;display:flex;flex-direction:column;gap:16px}
+
+.hud{display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--f-pixel);font-size:9px;letter-spacing:.08em;color:var(--muted)}
+.hud .hearts{display:flex;gap:4px}
+.hud button{font:inherit;color:inherit;background:none;border:2px solid var(--muted);padding:6px 8px;cursor:pointer}
+.hud button:focus-visible{outline:2px dashed var(--lantern);outline-offset:2px}
+
+.screen{display:flex;flex-direction:column;gap:16px;animation:pop .32s steps(4) both}
+@keyframes pop{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+
+.tag{font-family:var(--f-pixel);font-size:10px;letter-spacing:.08em;color:var(--lantern);line-height:1.8}
+h1,h2{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance}
+h1{font-size:clamp(42px,13vw,58px);line-height:1;color:var(--lantern);text-shadow:4px 4px 0 var(--blush-dk)}
+h2{font-size:28px;line-height:1.15;color:var(--cream);text-shadow:3px 3px 0 var(--blush-dk)}
+p{margin:0}
+.lead{font-size:18px;color:var(--cream);max-width:34ch}
+.fine{font-size:14px;color:var(--muted)}
+
+.box{background:var(--panel);border:4px solid var(--cream);padding:14px 16px;clip-path:var(--notch)}
+.say{display:flex;gap:10px;align-items:flex-start;min-height:64px}
+.say .who{font-family:var(--f-pixel);font-size:9px;color:var(--blush);padding-top:6px;white-space:nowrap}
+.say .line{flex:1;min-width:0}
+
+.btn{font-family:var(--f-display);font-size:20px;line-height:1.2;color:var(--panel);background:var(--lantern);border:0;padding:13px 20px 16px;box-shadow:inset 0 -5px 0 var(--lantern-dk);clip-path:var(--notch);cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.btn:active{transform:translateY(3px);box-shadow:inset 0 -2px 0 var(--lantern-dk)}
+.btn:focus-visible{background:var(--cream)}
+.btn.pink{background:var(--blush);color:var(--panel);box-shadow:inset 0 -5px 0 var(--blush-dk)}
+.btn.ghost{background:var(--panel-2);color:var(--cream);box-shadow:inset 0 -5px 0 #0a0819}
+.btn.big{font-size:24px;padding:16px 26px 19px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.next{align-self:flex-start}
+
+.duo{display:flex;align-items:flex-end;justify-content:center;gap:18px;padding-block:8px}
+.duo .heart{margin-bottom:34px;animation:beat 1s steps(2) infinite}
+@keyframes beat{50%{transform:scale(1.25)}}
+.spr{display:block;image-rendering:pixelated}
+.tuft{transform-box:fill-box;transform-origin:50% 100%;animation:tuft 1.1s steps(2) infinite}
+@keyframes tuft{50%{transform:translateY(-1px) skewX(-18deg)}}
+.blink{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* level 1 */
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.char-card{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;background:var(--panel);color:var(--cream);border:4px solid var(--muted);padding:14px 10px;clip-path:var(--notch);cursor:pointer;font-family:var(--f-body);font-size:14px;line-height:1.4;min-width:0}
+.char-card b{font-family:var(--f-display);font-size:24px;font-weight:400;color:var(--lantern)}
+.char-card small{font-size:13px;color:var(--muted)}
+.char-card.sel{border-color:var(--lantern);background:var(--panel-2)}
+.char-card:focus-visible{border-color:var(--cream)}
+
+/* level 2 */
+.menu{display:flex;flex-direction:column;gap:10px}
+.dish{position:relative;display:flex;align-items:center;gap:14px;background:var(--panel);color:var(--cream);border:4px solid var(--muted);padding:10px 14px;clip-path:var(--notch);cursor:pointer;font-family:var(--f-display);font-size:20px;text-align:start}
+.dish:focus-visible{border-color:var(--cream)}
+.dish.banned{opacity:.55;cursor:not-allowed}
+.dish.banned::after{content:"נפסל";position:absolute;inset-inline-end:14px;top:50%;transform:translateY(-50%) rotate(-12deg);font-family:var(--f-display);font-size:18px;color:var(--danger);border:3px solid var(--danger);padding:0 8px}
+.dish.new{border-color:var(--lantern);animation:pop .4s steps(4) both}
+
+/* level 3 */
+.clues{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.clue{aspect-ratio:3/4;max-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--panel-2);color:var(--cream);border:4px solid var(--lantern);clip-path:var(--notch);cursor:pointer;padding:6px;font-family:var(--f-body);font-size:13px;line-height:1.3;text-align:center;min-width:0}
+.clue .q{font-family:var(--f-pixel);font-size:26px;color:var(--lantern)}
+.clue.open{background:var(--panel);border-color:var(--cream);cursor:default}
+.clue.flip{animation:flip .3s steps(3)}
+@keyframes flip{50%{transform:scaleX(0)}}
+.answers{display:flex;flex-direction:column;gap:10px}
+.btn .spr.inline{display:inline-block;vertical-align:middle;margin-inline-end:10px}
+
+/* level 4 */
+.checks{display:flex;flex-direction:column;gap:10px}
+.chk{display:flex;align-items:flex-start;gap:12px;background:var(--panel);color:var(--cream);border:4px solid var(--muted);padding:12px 14px;clip-path:var(--notch);cursor:pointer;font-family:var(--f-body);font-size:16px;line-height:1.45;text-align:start}
+.chk .bx{flex:none;width:22px;height:22px;border:3px solid var(--cream);display:grid;place-items:center;font-family:var(--f-pixel);font-size:10px;color:var(--panel);margin-top:2px}
+.chk.on{border-color:var(--grass)}
+.chk.on .bx{background:var(--grass);border-color:var(--grass)}
+.chk .must{display:inline-block;font-family:var(--f-pixel);font-size:8px;color:var(--panel);background:var(--danger);padding:3px 5px;margin-inline-start:6px;vertical-align:2px}
+.chk[disabled]{cursor:default}
+.warn{border-color:var(--danger)}
+.warn b{color:var(--danger);font-family:var(--f-pixel);font-size:9px;letter-spacing:.06em}
+
+/* level 5 */
+.stage{position:relative;height:150px;border-bottom:6px solid var(--grass);overflow:hidden}
+.stage .p{position:absolute;bottom:0}
+.stage .pb{left:6px}
+.stage .pm{right:6px}
+.stage .meet{position:absolute;left:50%;top:6px;transform:translateX(-50%);opacity:0}
+.stage.done .meet{opacity:1;animation:beat .6s steps(2) infinite}
+.meter{height:22px;border:4px solid var(--cream);background:var(--panel);padding:2px}
+.meter i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--blush) 0 10px,var(--blush-dk) 10px 12px)}
+#hold{width:100%;touch-action:none;-webkit-touch-callout:none}
+#hold.holding{background:var(--blush);box-shadow:inset 0 -2px 0 var(--blush-dk);transform:translateY(3px)}
+
+/* invitation */
+.ticket{background:var(--cream);color:var(--panel);border:0;padding:20px 18px;clip-path:var(--notch);display:flex;flex-direction:column;gap:12px}
+.ticket .tag{color:var(--blush-dk)}
+.ticket h2{color:var(--panel);text-shadow:none;font-size:30px}
+.ticket dl{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;margin:0}
+.ticket dt{font-family:var(--f-pixel);font-size:9px;letter-spacing:.06em;color:var(--blush-dk);padding-top:6px}
+.ticket dd{margin:0;font-size:16px;line-height:1.45;min-width:0}
+.ticket dd b{font-family:var(--f-display);font-weight:400;font-size:19px}
+.ticket .ps{font-size:14px;border-top:3px dashed var(--blush-dk);padding-top:10px}
+.choice{display:flex;flex-wrap:wrap;gap:12px;align-items:center;min-height:70px}
+#yes{transition:transform .2s steps(3)}
+#no{transition:left .18s steps(3),top .18s steps(3),transform .18s steps(3);z-index:20}
+#no.loose{position:fixed}
+.taunt{min-height:26px;font-size:15px;color:var(--blush)}
+
+/* win */
+.win h1{font-size:clamp(56px,18vw,80px)}
+.links{display:flex;flex-direction:column;gap:12px}
+.links a{text-decoration:none;text-align:center}
+
+/* overlay */
+.overlay{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding-inline:16px;background:rgba(10,8,25,.72)}
+.alert{max-width:380px;width:100%;display:flex;flex-direction:column;gap:12px;border-color:var(--danger)}
+.alert .al-t{font-family:var(--f-pixel);font-size:14px;color:var(--danger);line-height:1.6}
+.alert .al-x{font-size:18px}
+.alert .btn{align-self:flex-start}
+
+.shake{animation:shake .36s steps(6)}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+<meta property="og:title" content="יש לך משימה, מוצקה">
+<meta property="og:description" content="משחק קצר. אסור לבטל.">
+</head>
+<body>
+
+<canvas id="sky" aria-hidden="true"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div class="app" dir="rtl" lang="he">
+  <div class="hud">
+    <span id="lvl"><span class="blink">PRESS START</span></span>
+    <span class="hearts" id="hearts" aria-label="התקדמות"></span>
+    <button id="snd" type="button" aria-pressed="true">SOUND ON</button>
+  </div>
+
+  <!-- 0 title -->
+  <section class="screen" data-level="0">
+    <p class="tag">NICOLE.EXE · משחק בהזמנה אישית</p>
+    <h1>המסע של מוצקה</h1>
+    <p class="lead">חמישה שלבים קצרים ופרס אחד בסוף. אסור לרמות, ואסור לבטל.</p>
+    <div class="duo" id="duo"></div>
+    <button class="btn big next" id="start" type="button">להתחיל ◀</button>
+    <p class="fine">עם סאונד זה יותר כיף</p>
+  </section>
+
+  <!-- 1 pick -->
+  <section class="screen" data-level="1" hidden>
+    <p class="tag">שלב 1 · בחירת שחקנית</p>
+    <h2>מי משחקת היום?</h2>
+    <div class="pick">
+      <button class="char-card" id="pickM" type="button"><span id="cardM"></span><b>מוצקה</b><small>כמו מוצארט, רק קטנה. שיער בבוקר: מוצארט מלא</small></button>
+      <button class="char-card" id="pickB" type="button"><span id="cardB"></span><b>באקה</b><small>בפינית זה "טיפש". היא המציאה את השם לפני שידעה</small></button>
+    </div>
+    <div class="box say" aria-live="polite"><span class="who">באקה:</span><span class="line" id="say1">נו, תבחרי דמות. אין לחץ. (יש קצת)</span></div>
+    <button class="btn next" id="next1" type="button" hidden>לשלב הבא ◀</button>
+  </section>
+
+  <!-- 2 food -->
+  <section class="screen" data-level="2" hidden>
+    <p class="tag">שלב 2 · מה אוכלים בדייט?</p>
+    <h2>תפריט הדייט</h2>
+    <div class="box say" aria-live="polite"><span class="who">באקה:</span><span class="line" id="say2">בחרתי לך כמה אופציות. מה שבא לך, אני גמיש לגמרי.</span></div>
+    <div class="menu" id="menu">
+      <button class="dish pz" type="button"><span class="ic"></span>פיצה</button>
+      <button class="dish pz" type="button"><span class="ic"></span>פיצה, אבל עם אהבה</button>
+      <button class="dish pz" type="button"><span class="ic"></span>הפתעה! (זו פיצה)</button>
+      <button class="dish new" id="notPizza" type="button" hidden><span class="ic" id="cupIc"></span>משהו שהוא לא פיצה</button>
+    </div>
+  </section>
+
+  <!-- 3 clues -->
+  <section class="screen" data-level="3" hidden>
+    <p class="tag">שלב 3 · שלושה רמזים</p>
+    <h2>את כבר יודעת לאן הולכים. תאספי רמזים בכל זאת</h2>
+    <div class="clues" id="clues">
+      <button class="clue" type="button" data-ic="hill" data-t="גבעה עם נוף"><span class="q">?</span></button>
+      <button class="clue" type="button" data-ic="cup" data-t="עגלת קפה"><span class="q">?</span></button>
+      <button class="clue" type="button" data-ic="mat" data-t="מחצלת על הדשא"><span class="q">?</span></button>
+    </div>
+    <div class="box say" aria-live="polite"><span class="who">באקה:</span><span class="line" id="say3">לחצי על הקלפים.</span></div>
+    <div class="answers" id="answers" hidden>
+      <button class="btn ghost" type="button" data-a="pizza">פיצריה</button>
+      <button class="btn ghost" type="button" data-a="abroad">חו״ל</button>
+      <button class="btn ghost" type="button" data-a="yona">גבעת יונה</button>
+    </div>
+    <button class="btn next" id="next3" type="button" hidden>לשלב הבא ◀</button>
+  </section>
+
+  <!-- 4 prep -->
+  <section class="screen" data-level="4" hidden>
+    <p class="tag">שלב 4 · משימת הכנה</p>
+    <h2>ציוד לגבעה</h2>
+    <p>לפני שיוצאים צריך לסמן את כל הציוד.</p>
+    <div class="checks" id="checks">
+      <button class="chk on" type="button" disabled><span class="bx">✓</span><span>מחצלת. באקה מביא</span></button>
+      <button class="chk" type="button"><span class="bx"></span><span>סוודר קטן, בערב על הגבעה מתקרר</span></button>
+      <button class="chk" type="button"><span class="bx"></span><span>אצבעות פנויות לחיבוק</span></button>
+      <button class="chk" type="button" id="wc"><span class="bx"></span><span>ביקור בשירותים לפני שיוצאים<span class="must">MUST</span></span></button>
+    </div>
+    <div class="box warn" id="wcWarn" hidden><b>אזהרת משחק</b><p>על הגבעה אין שירותים. יש נוף, קפה ובאקה. זה הכל.</p></div>
+    <button class="btn next" id="next4" type="button" hidden>הציוד מוכן ◀</button>
+  </section>
+
+  <!-- 5 boss -->
+  <section class="screen" data-level="5" hidden>
+    <p class="tag">שלב 5 · בוס אחרון</p>
+    <h2>חיבוק אצבעות</h2>
+    <p>להחזיק את הכפתור עד שהמד מתמלא. לא לעזוב באמצע.</p>
+    <div class="stage" id="stage">
+      <span class="p pb" id="pB"></span>
+      <span class="meet" id="meet"></span>
+      <span class="p pm" id="pM"></span>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="meterFill"></i></div>
+    <button class="btn big" id="hold" type="button">להחזיק כאן</button>
+    <div class="box say" aria-live="polite"><span class="who">באקה:</span><span class="line" id="say5">מוכנה? אצבעות בין אצבעות.</span></div>
+    <button class="btn next pink" id="next5" type="button" hidden>לפתוח את הפרס ◀</button>
+  </section>
+
+  <!-- 6 invite -->
+  <section class="screen" data-level="6" hidden>
+    <div class="ticket">
+      <p class="tag">INVITE · הזמנה רשמית</p>
+      <h2>מוצקה, את מוזמנת לדייט עם באקה</h2>
+      <dl>
+        <dt>WHEN</dt><dd><b>יום רביעי, 21.10</b></dd>
+        <dt>TIME</dt><dd><b>בסביבות 20:00</b><br>את השעה המדויקת נסגור באותו יום</dd>
+        <dt>WHERE</dt><dd><b>עגלת הקפה בגבעת יונה, אשדוד</b><br>המקום שלנו מההתחלה</dd>
+        <dt>MENU</dt><dd>קפה, נוף ומחצלת על הדשא. בלי פיצה. באמת.</dd>
+        <dt>BONUS</dt><dd>חיבוקי אצבעות בלי הגבלה</dd>
+      </dl>
+      <p class="ps">זה לא חו״ל, אני יודע. אבל זה עוזר קצת, וחו״ל בדרך.</p>
+    </div>
+    <div class="choice" id="choice">
+      <button class="btn big pink" id="yes" type="button">כן, אני באה!</button>
+      <button class="btn ghost" id="no" type="button">לבטל</button>
+    </div>
+    <p class="taunt" id="taunt" aria-live="polite"></p>
+  </section>
+
+  <!-- 7 win -->
+  <section class="screen win" data-level="7" hidden>
+    <p class="tag">LEVEL COMPLETE · 5/5</p>
+    <h1>נקבע!</h1>
+    <p class="lead">באקה מחכה לך ביום רביעי על הגבעה. מוצארט הקטנה, תביאי את השיער.</p>
+    <div class="duo" id="duo2"></div>
+    <div class="links">
+      <a class="btn big" id="gcal" target="_blank" rel="noopener">להוסיף ליומן ◀</a>
+      <a class="btn ghost" id="wa" target="_blank" rel="noopener">לענות לבאקה בוואטסאפ</a>
+      <button class="btn ghost" id="again" type="button">לשחק שוב</button>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="ov" hidden>
+  <div class="box alert" role="alertdialog" aria-modal="true" aria-labelledby="alT">
+    <p class="al-t" id="alT"></p>
+    <p class="al-x" id="alX"></p>
+    <button class="btn" id="alB" type="button"></button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- pixel sprites ---------- */
+  const PAL = {h:'#f6d77e',H:'#d9a845',s:'#f6c9a8',e:'#2a1b3d',m:'#e0607e',w:'#ffffff',p:'#6f8fe0',b:'#3a2a4a',
+    c:'#2b1d17',d:'#3b2a20',n:'#2c3e75',r:'#ffd34d',k:'#4a6aaa',C:'#c9813b',Y:'#ffd257',R:'#d8433b',
+    X:'#ff6f9f',x:'#5a4f80',S:'#cfc6e8',P:'#f4f0ff',B:'#7a4a28',G:'#4c9a55',g:'#2f6b3a',L:'#ffc857'};
+  const MAPS = {
+    motzka:[".h..hh..h.","..hhhhhh..",".hhhhhhhh.","hhssssssHh","hhsesseshh","hhssmmsshh","hh.ssss.hh","hhwwwwwwhh","hwwwwwwwwh","swwwwwwwws","..wwwwww..","..pppppp..","..pp..pp..","..bb..bb.."],
+    baka:[".c.cc.cc.c","cccccccccc","cccccccccc","ccsssssscc","ccsessescc",".csssrssc.",".dsmmmmsd.",".dddddddd.","..dddddd..","nnnnnnnnnn","snnnnnnnns","..nnnnnn..","..kk..kk..","..bb..bb.."],
+    heart:[".XX.XX.","XXXXXXX","XXXXXXX",".XXXXX.","..XXX..","...X..."],
+    heartE:[".xx.xx.","xxxxxxx","xxxxxxx",".xxxxx.","..xxx..","...x..."],
+    pizza:["CCCCCCCCC","CCCCCCCCC",".YYRYYRY.",".YRRYYYY.","..YYYRY..","..YYRRY..","...YYY...","...YRY...","....Y...."],
+    cup:["..S..S...","...S..S..","PPPPPPP..","PBBBBBPP.","PPPPPPP.P","PPPPPPPP.",".PPPPP...","..PPP...."],
+    hill:["....L......","...........","....GGG....","..GGGGGGG..",".GGGGgGGGG.","GGGgGGGGgGG"],
+    mat:["LXLXLXLXLX","LXLXLXLXLX","LXLXLXLXLX","LXLXLXLXLX","S.S.S.S.S."],
+    plane:[".....S.....","....SPS....",".S..SPS..S.","SSSSSPSSSSS",".S..SPS..S.","....SPS....","...SSSSS..."]
+  };
+  function sprite(name, px, cls = '') {
+    const rows = MAPS[name], w = rows[0].length, h = rows.length;
+    let base = '', tuft = '';
+    rows.forEach((row, y) => [...row].forEach((ch, x) => {
+      if (ch === '.') return;
+      const r = `<rect x="${x}" y="${y}" width="1.04" height="1.04" fill="${PAL[ch]}"/>`;
+      if (name === 'motzka' && y === 0) tuft += r; else base += r;
+    }));
+    return `<svg class="spr ${cls}" viewBox="0 0 ${w} ${h}" width="${w * px}" height="${h * px}" shape-rendering="crispEdges" aria-hidden="true">${base}${tuft ? `<g class="tuft">${tuft}</g>` : ''}</svg>`;
+  }
+  const duo = px => sprite('baka', px) + `<span class="heart">${sprite('heart', 4)}</span>` + sprite('motzka', px);
+  $('#duo').innerHTML = duo(7);
+  $('#duo2').innerHTML = duo(6);
+  $('#cardM').innerHTML = sprite('motzka', 6);
+  $('#cardB').innerHTML = sprite('baka', 6);
+  $$('.dish.pz .ic').forEach(el => el.innerHTML = sprite('pizza', 4));
+  $('#cupIc').innerHTML = sprite('cup', 4);
+  $('#pB').innerHTML = sprite('baka', 6);
+  $('#pM').innerHTML = sprite('motzka', 6);
+  $('#meet').innerHTML = sprite('heart', 5);
+
+  /* ---------- sound ---------- */
+  let ac = null, soundOn = true;
+  function blip(f = 660, d = .08, type = 'square', vol = .045) {
+    if (!soundOn) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+      o.type = type; o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02);
+    } catch (e) {}
+  }
+  const seq = (notes, step = 105, d = .11) => notes.forEach((n, i) => setTimeout(() => blip(n, d), i * step));
+  const sfx = {
+    tap: () => blip(880, .05),
+    ok: () => seq([523, 659, 784, 1047]),
+    no: () => seq([311, 233], 140, .16),
+    boing: () => { blip(520, .06, 'triangle', .07); setTimeout(() => blip(780, .06, 'triangle', .07), 60); },
+    win: () => seq([523, 659, 784, 1047, 784, 1047, 1319], 120, .14)
+  };
+  $('#snd').addEventListener('click', () => {
+    soundOn = !soundOn;
+    $('#snd').textContent = soundOn ? 'SOUND ON' : 'SOUND OFF';
+    $('#snd').setAttribute('aria-pressed', soundOn);
+    sfx.tap();
+  });
+
+  /* ---------- screens + hud ---------- */
+  const screens = $$('.screen');
+  let cur = 0;
+  function hud() {
+    const lv = +screens[cur].dataset.level;
+    $('#lvl').innerHTML = lv === 0 ? '<span class="blink">PRESS START</span>' : lv <= 5 ? `LEVEL ${lv}/5` : lv === 6 ? 'REWARD' : 'YOU WIN';
+    const done = Math.min(5, Math.max(0, lv - 1 + (lv >= 6 ? 1 : 0)));
+    $('#hearts').innerHTML = Array.from({length: 5}, (_, i) => sprite(i < done ? 'heart' : 'heartE', 2)).join('');
+  }
+  function go(i) {
+    screens[cur].hidden = true;
+    cur = i;
+    screens[cur].hidden = false;
+    hud();
+    window.scrollTo(0, 0);
+    if (cur === 5) setupBoss();
+    if (cur === 7) celebrate();
+  }
+  hud();
+
+  function type(el, text) {
+    el.textContent = '';
+    if (reduced) { el.textContent = text; return; }
+    clearInterval(el._t);
+    let i = 0;
+    el._t = setInterval(() => {
+      el.textContent = text.slice(0, ++i);
+      if (i % 3 === 0) blip(1200, .02, 'square', .02);
+      if (i >= text.length) clearInterval(el._t);
+    }, 28);
+  }
+  function shake(el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+
+  function alertBox(title, text, btn) {
+    return new Promise(res => {
+      $('#alT').textContent = title; $('#alX').textContent = text; $('#alB').textContent = btn;
+      $('#ov').hidden = false; $('#alB').focus();
+      $('#alB').onclick = () => { sfx.tap(); $('#ov').hidden = true; res(); };
+    });
+  }
+
+  $('#start').addEventListener('click', () => { sfx.ok(); go(1); });
+
+  /* ---------- level 1 ---------- */
+  $('#pickB').addEventListener('click', () => {
+    sfx.no(); shake($('#pickB'));
+    type($('#say1'), 'באקה כבר תפוס. באקה זה אני. בפינית זה טיפש, ועדיין, זה אני.');
+  });
+  $('#pickM').addEventListener('click', () => {
+    sfx.ok();
+    $('#pickM').classList.add('sel'); $('#pickB').classList.remove('sel');
+    type($('#say1'), 'שחקנית נבחרה: מוצקה. כוח מיוחד: שיער מוצארט בבוקר.');
+    $('#next1').hidden = false;
+  });
+  $('#next1').addEventListener('click', () => { sfx.tap(); go(2); });
+
+  /* ---------- level 2 ---------- */
+  let pizzaBanned = false;
+  $$('.dish.pz').forEach(b => b.addEventListener('click', async () => {
+    if (pizzaBanned) { sfx.no(); shake(b); return; }
+    pizzaBanned = true; sfx.no();
+    await alertBox('!! לאאאא !!', 'לא לעשות ככה, ככה אסור! מוצקה כבר אמרה שנמאס לה מפיצה.', 'צודקת');
+    $$('.dish.pz').forEach(d => d.classList.add('banned'));
+    type($('#say2'), 'בסדר. הפעם בלי פיצה. אני מתאבל בשקט.');
+    $('#notPizza').hidden = false;
+  }));
+  $('#notPizza').addEventListener('click', () => { sfx.ok(); go(3); });
+
+  /* ---------- level 3 ---------- */
+  let opened = 0;
+  $$('.clue').forEach(c => c.addEventListener('click', () => {
+    if (c.classList.contains('open')) return;
+    sfx.boing();
+    c.classList.add('flip');
+    setTimeout(() => {
+      c.classList.add('open');
+      c.innerHTML = sprite(c.dataset.ic, 5) + `<span>${c.dataset.t}</span>`;
+      opened++;
+      if (opened === 3) {
+        type($('#say3'), 'גבעה, קפה, מחצלת. אז לאן הולכים?');
+        $('#answers').hidden = false;
+      }
+    }, 150);
+  }));
+  $$('#answers .btn').forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.a;
+    if (a === 'pizza') { sfx.no(); shake(b); type($('#say3'), 'לאאאא, לא לעשות ככה! ככה אסור!'); }
+    if (a === 'abroad') {
+      sfx.boing(); shake(b);
+      type($('#say3'), 'טיסה בטעינה... 12%. זה עוד יקרה, מבטיח. בינתיים: נוף שמרגיש קצת כמו חופשה.');
+      if (!b.querySelector('svg')) b.insertAdjacentHTML('afterbegin', sprite('plane', 3, 'inline'));
+    }
+    if (a === 'yona') {
+      sfx.ok();
+      $$('#answers .btn').forEach(x => x.disabled = true);
+      b.classList.remove('ghost');
+      type($('#say3'), 'נכון! עגלת הקפה בגבעת יונה. המקום שלנו.');
+      $('#next3').hidden = false;
+    }
+  }));
+  $('#next3').addEventListener('click', () => { sfx.tap(); go(4); });
+
+  /* ---------- level 4 ---------- */
+  const checks = $$('#checks .chk:not([disabled])');
+  checks.forEach(c => c.addEventListener('click', () => {
+    c.classList.toggle('on');
+    const on = c.classList.contains('on');
+    c.querySelector('.bx').textContent = on ? '✓' : '';
+    on ? blip(990, .06) : blip(440, .06);
+    if (c.id === 'wc') $('#wcWarn').hidden = !on;
+    $('#next4').hidden = !checks.every(x => x.classList.contains('on'));
+  }));
+  $('#next4').addEventListener('click', () => { sfx.tap(); go(5); });
+
+  /* ---------- level 5: finger hug ---------- */
+  let prog = 0, holding = false, bossDone = false, last = 0, scolded = false, raf = 0;
+  const hold = $('#hold');
+  function setupBoss() {
+    prog = 0; bossDone = false; scolded = false;
+    $('#stage').classList.remove('done'); $('#next5').hidden = true;
+    hold.disabled = false; hold.textContent = 'להחזיק כאן';
+    paintBoss();
+  }
+  function paintBoss() {
+    const st = $('#stage'), w = st.clientWidth, cw = $('#pB').firstElementChild.getBoundingClientRect().width;
+    const dist = Math.max(0, w / 2 - cw - 6);
+    $('#pB').style.transform = `translateX(${prog * dist}px)`;
+    $('#pM').style.transform = `translateX(${-prog * dist}px)`;
+    $('#meterFill').style.width = (prog * 100).toFixed(1) + '%';
+  }
+  function tick(t) {
+    const dt = last ? Math.min(64, t - last) : 16; last = t;
+    if (!bossDone) {
+      if (holding) prog = Math.min(1, prog + dt / 2400);
+      else prog = Math.max(0, prog - dt / 1400);
+      paintBoss();
+      if (holding && Math.random() < .12) blip(400 + prog * 700, .03, 'square', .02);
+      if (prog >= 1) winBoss();
+    }
+    if (holding || prog > 0) raf = requestAnimationFrame(tick); else { raf = 0; last = 0; }
+  }
+  function startHold(e) {
+    if (bossDone) return;
+    e.preventDefault();
+    holding = true; hold.classList.add('holding'); hold.textContent = 'לא לעזוב...';
+    try { hold.setPointerCapture && e.pointerId != null && hold.setPointerCapture(e.pointerId); } catch (_) {}
+    if (!raf) { last = 0; raf = requestAnimationFrame(tick); }
+  }
+  function endHold() {
+    if (!holding) return;
+    holding = false; hold.classList.remove('holding');
+    if (bossDone) return;
+    hold.textContent = 'להחזיק כאן';
+    if (prog > .05 && prog < 1) {
+      sfx.no();
+      type($('#say5'), scolded ? 'שוב עזבת! מחזיקים עד הסוף.' : 'לאאאא, לא לעזוב! ככה אסור!');
+      scolded = true;
+    }
+  }
+  hold.addEventListener('pointerdown', startHold);
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => hold.addEventListener(ev, endHold));
+  hold.addEventListener('contextmenu', e => e.preventDefault());
+  hold.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) startHold(e); });
+  hold.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') endHold(); });
+  function winBoss() {
+    bossDone = true; holding = false; prog = 1; paintBoss();
+    hold.classList.remove('holding'); hold.disabled = true; hold.textContent = 'חיבוק אצבעות הושלם';
+    $('#stage').classList.add('done');
+    sfx.win();
+    type($('#say5'), 'חיבוק אצבעות הושלם! +100 אהבה. הבוס הובס.');
+    burst(1.2);
+    $('#next5').hidden = false;
+  }
+  $('#next5').addEventListener('click', () => { sfx.tap(); go(6); });
+
+  /* ---------- level 6: invite + runaway button ---------- */
+  const no = $('#no'), yes = $('#yes');
+  const noLabels = ['בטוחה?', 'לאאאא', 'ככה אסור!', 'באקה עצוב', 'נו, מוצקה', 'הכפתור עייף', 'אין מצב'];
+  const noTaunts = ['הכפתור ברח. מוזר.', 'לאאאא, לא לעשות ככה!', 'ככה אסור! זה כתוב בחוקים.', 'באקה רואה הכל.', 'הכפתור "כן" רק גדל, שמת לב?', 'מוצארט לא היה מבטל.', 'טוב, הבנתי שאת מתעקשת...'];
+  let escapes = 0, noTamed = false;
+  function flee(e) {
+    if (noTamed) return;
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    const r = no.getBoundingClientRect();
+    if (!no.classList.contains('loose')) {
+      no.style.left = r.left + 'px'; no.style.top = r.top + 'px';
+      no.classList.add('loose');
+      void no.offsetWidth;
+    }
+    const W = innerWidth, H = innerHeight, bw = r.width, bh = r.height, y = yes.getBoundingClientRect();
+    const px = e && e.clientX != null ? e.clientX : r.left + bw / 2, py = e && e.clientY != null ? e.clientY : r.top + bh / 2;
+    let nx = 12, ny = 12;
+    for (let i = 0; i < 40; i++) {
+      nx = 12 + Math.random() * Math.max(1, W - bw - 24);
+      ny = 70 + Math.random() * Math.max(1, H - bh - 100);
+      const far = Math.hypot(nx + bw / 2 - px, ny + bh / 2 - py) > 140;
+      const clearYes = nx + bw < y.left - 8 || nx > y.right + 8 || ny + bh < y.top - 8 || ny > y.bottom + 8;
+      if (far && clearYes) break;
+    }
+    no.style.left = nx + 'px'; no.style.top = ny + 'px';
+    const k = Math.min(escapes, noLabels.length - 1);
+    no.textContent = noLabels[k];
+    no.style.transform = `scale(${Math.max(.6, 1 - escapes * .06)})`;
+    yes.style.transform = `scale(${Math.min(1.45, 1 + (escapes + 1) * .07)})`;
+    type($('#taunt'), noTaunts[k]);
+    sfx.boing();
+    escapes++;
+    if (escapes >= 8) tame();
+  }
+  function tame() {
+    noTamed = true;
+    no.textContent = 'טוב, כן';
+    no.classList.remove('ghost'); no.classList.add('pink');
+    no.style.transform = 'scale(1)';
+    type($('#taunt'), 'הכפתור התייאש והפך ל"כן". ניצחת. כלומר, ניצחנו.');
+  }
+  no.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') flee(e); });
+  no.addEventListener('pointerdown', flee);
+  no.addEventListener('touchstart', e => { if (!noTamed) { e.preventDefault(); } }, {passive: false});
+  no.addEventListener('click', e => { if (noTamed) accept(); else flee(e); });
+  yes.addEventListener('click', accept);
+  function accept() {
+    no.classList.remove('loose'); no.removeAttribute('style'); yes.removeAttribute('style');
+    go(7);
+  }
+
+  /* ---------- level 7: win ---------- */
+  const gcal = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+    + '&text=' + encodeURIComponent('דייט עם באקה')
+    + '&dates=20261021T200000/20261021T223000&ctz=Asia/Jerusalem'
+    + '&details=' + encodeURIComponent('עגלת הקפה בגבעת יונה. קפה, נוף, מחצלת. בלי פיצה. השעה המדויקת נסגרת באותו יום.')
+    + '&location=' + encodeURIComponent('גבעת יונה, אשדוד');
+  $('#gcal').href = gcal;
+  $('#wa').href = 'https://wa.me/?text=' + encodeURIComponent('באקה, אני באה 💛 נתראה ברביעי על הגבעה');
+  $('#again').addEventListener('click', () => location.reload());
+  function celebrate() { sfx.win(); burst(3.2); }
+
+  /* ---------- fx: pixel confetti ---------- */
+  const fx = $('#fx'), fc = fx.getContext('2d');
+  let parts = [], fxRaf = 0, fxEnd = 0;
+  const FX_W = 160;
+  function burst(sec) {
+    if (reduced) return;
+    const FX_H = Math.round(FX_W * innerHeight / innerWidth);
+    fx.width = FX_W; fx.height = FX_H;
+    const cols = ['#ff6f9f', '#ffc857', '#fff3d6', '#8fd694', '#b8376a'];
+    for (let i = 0; i < 90; i++) parts.push({x: Math.random() * FX_W, y: -Math.random() * FX_H * .6, vy: .35 + Math.random() * .9, vx: (Math.random() - .5) * .4, c: cols[i % cols.length], h: Math.random() < .3});
+    fxEnd = performance.now() + sec * 1000;
+    if (!fxRaf) fxRaf = requestAnimationFrame(fxTick);
+  }
+  const HEART = [[1,0],[2,0],[4,0],[5,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[1,2],[2,2],[3,2],[4,2],[5,2],[2,3],[3,3],[4,3],[3,4]];
+  function fxTick(t) {
+    fc.clearRect(0, 0, fx.width, fx.height);
+    parts.forEach(p => {
+      p.y += p.vy; p.x += p.vx + Math.sin((p.y + p.x) / 9) * .15;
+      fc.fillStyle = p.c;
+      if (p.h) HEART.forEach(([a, b]) => fc.fillRect((p.x | 0) + a, (p.y | 0) + b, 1, 1));
+      else fc.fillRect(p.x | 0, p.y | 0, 2, 2);
+    });
+    if (t > fxEnd) parts = parts.filter(p => p.y < fx.height);
+    if (parts.length) fxRaf = requestAnimationFrame(fxTick);
+    else { fxRaf = 0; fc.clearRect(0, 0, fx.width, fx.height); }
+  }
+
+  /* ---------- sky: night over Givat Yona ---------- */
+  const sky = $('#sky'), sx = sky.getContext('2d');
+  let SW = 128, SH = 240, stars = [], flies = [];
+  function sizeSky() {
+    SH = Math.max(160, Math.round(SW * innerHeight / Math.max(1, innerWidth)));
+    sky.width = SW; sky.height = SH;
+    stars = Array.from({length: Math.round(SW * SH / 80)}, () => ({x: Math.random() * SW | 0, y: Math.random() * SH * .72 | 0, p: Math.random() * 6.28, big: Math.random() < .12}));
+    flies = Array.from({length: 8}, () => ({x: Math.random() * SW, y: SH * (.84 + Math.random() * .12), p: Math.random() * 6.28}));
+  }
+  const hillY = x => SH * .82 - Math.sin(Math.PI * x / SW) * SH * .08;
+  function drawSky(t) {
+    const bands = ['#120f28', '#15122e', '#191536', '#1d1840', '#221c4a', '#29205a'];
+    const bh = Math.ceil(SH * .84 / bands.length);
+    bands.forEach((c, i) => { sx.fillStyle = c; sx.fillRect(0, i * bh, SW, bh + 1); });
+    stars.forEach(s => {
+      const a = .45 + .55 * Math.sin(t / 700 + s.p);
+      sx.fillStyle = `rgba(255,243,214,${Math.max(.15, a)})`;
+      sx.fillRect(s.x, s.y, 1, 1);
+      if (s.big && a > .7) { sx.fillRect(s.x - 1, s.y, 3, 1); sx.fillRect(s.x, s.y - 1, 1, 3); }
+    });
+    // moon
+    const mx = Math.round(SW * .2), my = Math.round(SH * .1), mr = 6;
+    for (let y = -mr; y <= mr; y++) for (let x = -mr; x <= mr; x++) {
+      if (x * x + y * y <= mr * mr) { sx.fillStyle = (x + 2) * (x + 2) + (y - 1) * (y - 1) <= 4 ? '#e8dcae' : '#fff3d6'; sx.fillRect(mx + x, my + y, 1, 1); }
+    }
+    // hill
+    for (let x = 0; x < SW; x++) {
+      const y = Math.round(hillY(x));
+      sx.fillStyle = '#2f6b3a'; sx.fillRect(x, y, 1, SH - y);
+      sx.fillStyle = '#4c9a55'; sx.fillRect(x, y, 1, 2);
+      sx.fillStyle = '#245a2f'; sx.fillRect(x, y + Math.round(SH * .07), 1, SH);
+    }
+    // coffee cart at the top
+    const cx = Math.round(SW * .62), cy = Math.round(hillY(cx));
+    sx.fillStyle = '#7a4a28'; sx.fillRect(cx - 8, cy - 9, 16, 7);
+    sx.fillStyle = '#ffc857'; sx.fillRect(cx - 7, cy - 8, 6, 3);
+    for (let i = 0; i < 9; i++) { sx.fillStyle = i % 2 ? '#fff3d6' : '#ff6f9f'; sx.fillRect(cx - 9 + i * 2, cy - 13, 2, 3); }
+    sx.fillStyle = '#3a2a4a'; sx.fillRect(cx - 6, cy - 2, 3, 2); sx.fillRect(cx + 3, cy - 2, 3, 2);
+    // pole + string lights
+    const px = cx - 26, py = Math.round(hillY(px));
+    sx.fillStyle = '#3a2a4a'; sx.fillRect(px, py - 16, 1, 16);
+    for (let i = 0; i <= 16; i++) {
+      const lx = px + Math.round(i * (cx - 9 - px) / 16), ly = py - 16 + Math.round(Math.sin(Math.PI * i / 16) * 4) + Math.round(i * (cy - 13 - (py - 16)) / 16);
+      sx.fillStyle = '#5a4f80'; sx.fillRect(lx, ly, 1, 1);
+      if (i % 3 === 1) { sx.fillStyle = Math.sin(t / 400 + i) > -.3 ? '#ffc857' : '#8a6a2a'; sx.fillRect(lx, ly + 1, 1, 1); }
+    }
+    // mat with two tiny people
+    const ax = Math.round(SW * .38), ay = Math.round(hillY(ax));
+    sx.fillStyle = '#ff6f9f'; sx.fillRect(ax - 5, ay - 1, 10, 1);
+    sx.fillStyle = '#2b1d17'; sx.fillRect(ax - 3, ay - 5, 2, 2);
+    sx.fillStyle = '#2c3e75'; sx.fillRect(ax - 3, ay - 3, 2, 2);
+    sx.fillStyle = '#f6d77e'; sx.fillRect(ax + 1, ay - 5, 2, 2);
+    sx.fillStyle = '#ffffff'; sx.fillRect(ax + 1, ay - 3, 2, 2);
+    // fireflies
+    flies.forEach(f => {
+      const a = Math.sin(t / 500 + f.p);
+      if (a > 0) {
+        sx.fillStyle = `rgba(255,224,120,${a})`;
+        sx.fillRect(Math.round(f.x + Math.sin(t / 1800 + f.p) * 4), Math.round(f.y + Math.cos(t / 1500 + f.p) * 2), 1, 1);
+      }
+    });
+  }
+  let lastSky = 0;
+  function skyLoop(t) {
+    if (t - lastSky > 110) { drawSky(t); lastSky = t; }
+    requestAnimationFrame(skyLoop);
+  }
+  sizeSky();
+  addEventListener('resize', () => { sizeSky(); drawSky(performance.now()); });
+  if (reduced) drawSky(0); else requestAnimationFrame(skyLoop);
+})();
+</script>
+</body>
+</html>
